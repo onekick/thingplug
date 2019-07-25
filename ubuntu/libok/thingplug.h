@@ -425,6 +425,7 @@ void printResultCode(char * buf)
 
 int mqttCreateNode(MQTTClient * client, char * devPw)
 {
+    step = CREATE_NODE_REQUESTED;
     strcpy(passCode, devPw);
 
     MQTTClient_deliveryToken token;
@@ -443,7 +444,6 @@ int mqttCreateNode(MQTTClient * client, char * devPw)
     pubmsg.qos 		= QOS;
     pubmsg.retained 	= 0;
     MQTTClient_publishMessage(*client, mqttPubPath, &pubmsg, &token);
-    step = CREATE_NODE_REQUESTED;
 
     printf("Waiting for publication\n");
     rc = MQTTClient_waitForCompletion(*client, token, TIMEOUT);
@@ -459,6 +459,8 @@ int mqttCreateNode(MQTTClient * client, char * devPw)
 
 int mqttCreateRemoteCSE(MQTTClient * client)
 {
+    step = CREATE_REMOTE_CSE_REQUESTED;
+
     MQTTClient_deliveryToken token;
     MQTTClient_message pubmsg = MQTTClient_message_initializer;
     int rc = 0;
@@ -475,7 +477,6 @@ int mqttCreateRemoteCSE(MQTTClient * client)
     pubmsg.qos 		= QOS;
     pubmsg.retained 	= 0;
     MQTTClient_publishMessage(*client, mqttPubPath, &pubmsg, &token);
-    step = CREATE_REMOTE_CSE_REQUESTED;
 
     printf("Waiting for publication\n");
     rc = MQTTClient_waitForCompletion(*client, token, TIMEOUT);
@@ -492,6 +493,7 @@ int mqttCreateRemoteCSE(MQTTClient * client)
 
 int mqttCreateContainer(MQTTClient * client, char* con)
 {
+    step = CREATE_CONTAINER_REQUESTED;
     strcpy(container, con);
 
     MQTTClient_deliveryToken token;
@@ -511,7 +513,6 @@ int mqttCreateContainer(MQTTClient * client, char* con)
     pubmsg.qos 		= QOS;
     pubmsg.retained 	= 0;
     MQTTClient_publishMessage(*client, mqttPubPath, &pubmsg, &token);
-    step = CREATE_CONTAINER_REQUESTED;
 
     printf("Waiting for publication\n");
     rc = MQTTClient_waitForCompletion(*client, token, TIMEOUT);
@@ -527,6 +528,8 @@ int mqttCreateContainer(MQTTClient * client, char* con)
 
 int mqttCreateMgmtCmd(MQTTClient * client)
 {
+    step = CREATE_MGMT_CMD_REQUESTED;
+
     MQTTClient_deliveryToken token;
     MQTTClient_message pubmsg = MQTTClient_message_initializer;
     int rc = 0;
@@ -544,7 +547,6 @@ int mqttCreateMgmtCmd(MQTTClient * client)
     pubmsg.qos 		= QOS;
     pubmsg.retained 	= 0;
     MQTTClient_publishMessage(*client, mqttPubPath, &pubmsg, &token);
-    step = CREATE_MGMT_CMD_REQUESTED;
 
     printf("Waiting for publication\n");
     rc = MQTTClient_waitForCompletion(*client, token, TIMEOUT);
@@ -560,6 +562,8 @@ int mqttCreateMgmtCmd(MQTTClient * client)
 
 int mqttCreateContentInstance(MQTTClient * client, char * dataValue)
 {
+    step = CREATE_CONTENT_INSTANCE_REQUESTED;
+
     MQTTClient_deliveryToken token;
     MQTTClient_message pubmsg = MQTTClient_message_initializer;
     int rc = 0;
@@ -568,7 +572,6 @@ int mqttCreateContentInstance(MQTTClient * client, char * dataValue)
     generateRi(strRi);
 
     strcpy(dataName, "text");	// data type
-//sprintf(mqttRemoteCSE, frameMqttRemoteCSE, APP_EUI, deviceId);
     sprintf(mqttContainer, frameMqttContainer, mqttRemoteCSE, container);
 
     sprintf(bufRequest, frameCreateContentInstance, 
@@ -580,7 +583,6 @@ int mqttCreateContentInstance(MQTTClient * client, char * dataValue)
     pubmsg.qos 		= QOS;
     pubmsg.retained 	= 0;
     MQTTClient_publishMessage(*client, mqttPubPath, &pubmsg, &token);
-    step = CREATE_CONTENT_INSTANCE_REQUESTED;
 
     printf("Waiting for publication\n");
     rc = MQTTClient_waitForCompletion(*client, token, TIMEOUT);
@@ -594,25 +596,25 @@ int mqttCreateContentInstance(MQTTClient * client, char * dataValue)
 }
 int mqttCreateLatest(MQTTClient * client )
 {
- MQTTClient_deliveryToken token;
+    step = GET_LATEST_REQUESTED;
+    MQTTClient_deliveryToken token;
     MQTTClient_message pubmsg = MQTTClient_message_initializer;
     int rc = 0;
 
     char strRi[100]="";
     generateRi(strRi);
 
-   sprintf(mqttLatest, frameMqttLatest,mqttContainer);
+    sprintf(mqttLatest, frameMqttLatest,mqttContainer);
     sprintf( bufRequest, frameCreateLatest,
         mqttLatest, deviceId, strRi, passWord);
 
 
-printf("6. Create Latest :\n payload=%s\n", bufRequest);
+    printf("6. Create Latest :\n payload=%s\n", bufRequest);
     pubmsg.payload 	= bufRequest;
     pubmsg.payloadlen 	= strlen(bufRequest);
     pubmsg.qos 		= QOS;
     pubmsg.retained 	= 0;
     MQTTClient_publishMessage(*client, mqttPubPath, &pubmsg, &token);
-    step = GET_LATEST_REQUESTED;
 
     printf("Waiting for publication\n");
     rc = MQTTClient_waitForCompletion(*client, token, TIMEOUT);
@@ -632,12 +634,11 @@ printf("6. Create Latest :\n payload=%s\n", bufRequest);
 
 int mqttSubscribe(MQTTClient * client,char * targetId,  void (*fp)(char *))
 {
+    step = SUBSCRIBE_REQUESTED;
+
     mqttCallback = fp;
 
     strcpy(targetDeviceId, targetId);
-//char notifySubName[BUF_SIZE]= "";
-//strcat(notifySubName,container);
-//strcat(notifySubName, deviceId);
     MQTTClient_deliveryToken token;
     MQTTClient_message pubmsg = MQTTClient_message_initializer;
     int rc = 0;
@@ -645,8 +646,8 @@ int mqttSubscribe(MQTTClient * client,char * targetId,  void (*fp)(char *))
     char strRi[128] = "";
     generateRi(strRi);
 
-sprintf(mqttRemoteCSE, frameMqttRemoteCSE, APP_EUI, targetDeviceId);
-sprintf(mqttContainer, frameMqttContainer, mqttRemoteCSE, container);
+    sprintf(mqttRemoteCSE, frameMqttRemoteCSE, APP_EUI, targetDeviceId);
+    sprintf(mqttContainer, frameMqttContainer, mqttRemoteCSE, container);
 
     sprintf( bufRequest, frameCreateSubscribe,
              mqttContainer, deviceId, strRi, NOTIFY_SUB_NAME, passWord, deviceId);
@@ -657,7 +658,6 @@ sprintf(mqttContainer, frameMqttContainer, mqttRemoteCSE, container);
     pubmsg.qos 		= QOS;
     pubmsg.retained 	= 0;
     MQTTClient_publishMessage(*client, mqttPubPath, &pubmsg, &token);
-    step = SUBSCRIBE_REQUESTED;
 
     printf("Waiting for publication\n");
     rc = MQTTClient_waitForCompletion(*client, token, TIMEOUT);
@@ -672,6 +672,7 @@ sprintf(mqttContainer, frameMqttContainer, mqttRemoteCSE, container);
 }
 int mqttDeleteSubscribe(MQTTClient * client, char * targetId)
 {
+    step = DELETE_SUBSCRIBE_REQUESTED;
 
     MQTTClient_deliveryToken token;
     MQTTClient_message pubmsg = MQTTClient_message_initializer;
@@ -680,11 +681,11 @@ int mqttDeleteSubscribe(MQTTClient * client, char * targetId)
     char strRi[128] = "";
     generateRi(strRi);
 
-sprintf(mqttRemoteCSE, frameMqttRemoteCSE, APP_EUI, targetDeviceId);
-sprintf(mqttContainer, frameMqttContainer, mqttRemoteCSE, container);
- sprintf(mqttSubscription, frameMqttSubscription, mqttContainer, NOTIFY_SUB_NAME);
-sprintf(bufRequest, frameDeleteSubscribe, mqttSubscription,
- deviceId, strRi, passWord, deviceId);
+    sprintf(mqttRemoteCSE, frameMqttRemoteCSE, APP_EUI, targetDeviceId);
+    sprintf(mqttContainer, frameMqttContainer, mqttRemoteCSE, container);
+    sprintf(mqttSubscription, frameMqttSubscription, mqttContainer, NOTIFY_SUB_NAME);
+    sprintf(bufRequest, frameDeleteSubscribe, mqttSubscription,
+	deviceId, strRi, passWord, deviceId);
 
     printf("4-2. Delete Subscribe :\n payload=%s\n", bufRequest);
     pubmsg.payload 	= bufRequest;
@@ -692,7 +693,6 @@ sprintf(bufRequest, frameDeleteSubscribe, mqttSubscription,
     pubmsg.qos 		= QOS;
     pubmsg.retained 	= 0;
     MQTTClient_publishMessage(*client, mqttPubPath, &pubmsg, &token);
-    step = DELETE_SUBSCRIBE_REQUESTED;
 
     printf("Waiting for publication\n");
     rc = MQTTClient_waitForCompletion(*client, token, TIMEOUT);
