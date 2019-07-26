@@ -670,7 +670,7 @@ int mqttSubscribe(MQTTClient * client,char * targetId,  void (*fp)(char *))
 
     return TRUE;
 }
-int mqttDeleteSubscribe(MQTTClient * client, char * targetId)
+int mqttDeleteSubscribe(MQTTClient * client, char * targetDeviceId)
 {
     step = DELETE_SUBSCRIBE_REQUESTED;
 
